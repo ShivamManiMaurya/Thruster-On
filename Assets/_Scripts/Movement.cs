@@ -5,6 +5,8 @@ using UnityEngine;
 public class Movement : MonoBehaviour
 {
     [SerializeField] private float thrustForce, rotateAngle;
+    [SerializeField] private AudioClip thrustSound;
+    [SerializeField] private ParticleSystem MainThruster, leftThruster, rightThruster;
 
     Rigidbody rb;
     AudioSource audioSource;
@@ -25,15 +27,25 @@ public class Movement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rb.AddRelativeForce(Vector3.up * thrustForce * Time.deltaTime);
-            if (!audioSource.isPlaying)
-            {
-                audioSource.Play();
-            }
+            MainThrustOn();
         }
         else
         {
             audioSource.Stop();
+            MainThruster.Stop();
+        }
+    }
+
+    private void MainThrustOn()
+    {
+        rb.AddRelativeForce(Vector3.up * thrustForce * Time.deltaTime);
+        if (!audioSource.isPlaying)
+        {
+            audioSource.PlayOneShot(thrustSound);
+        }
+        if (!MainThruster.isPlaying)
+        {
+            MainThruster.Play();
         }
     }
 
@@ -41,11 +53,34 @@ public class Movement : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.A))
         {
-            RotateRocket(rotateAngle);
+            LeftThrustOn();
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            RotateRocket(-rotateAngle);
+            RightThrustOn();
+        }
+        else
+        {
+            leftThruster.Stop();
+            rightThruster.Stop();
+        }
+    }
+
+    private void RightThrustOn()
+    {
+        RotateRocket(-rotateAngle);
+        if (!rightThruster.isPlaying)
+        {
+            rightThruster.Play();
+        }
+    }
+
+    private void LeftThrustOn()
+    {
+        RotateRocket(rotateAngle);
+        if (!leftThruster.isPlaying)
+        {
+            leftThruster.Play();
         }
     }
 

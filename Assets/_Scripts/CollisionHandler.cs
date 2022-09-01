@@ -5,17 +5,46 @@ using UnityEngine.SceneManagement;
 
 public class CollisionHandler : MonoBehaviour
 {
-    [SerializeField] private float loadDelay = 2f;
+    [SerializeField] private float loadDelay = 1f, deathDelay = 3f;
+    [SerializeField] private AudioClip sucessClip, explosionClip;
+    [Range(0, 1)]
+    [SerializeField] private float explosionVolume, sucessVolume;
+    [SerializeField] private ParticleSystem explosion, sucess;
 
     Movement movement;
+    AudioSource audioSource;
+    
+ 
+    private bool isTransitioning = false;
+    private bool collisionDisabled = false;
 
     private void Start()
     {
         movement = GetComponent<Movement>();
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    private void Update()
+    {
+        RespondToDebugKey();
+    }
+
+    private void RespondToDebugKey()
+    {
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            StartLoadNextLevelSequence();
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            collisionDisabled = !collisionDisabled;  // toggle collision
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (isTransitioning || collisionDisabled) { return; }
+
         switch (collision.gameObject.tag)
         {
             case "Start":
@@ -32,18 +61,23 @@ public class CollisionHandler : MonoBehaviour
 
     private void StartCrashSequence()
     {
-        //todo sound effects on crash
-        //todo particle effects on crash
+        isTransitioning = true;
+        audioSource.Stop();
+        audioSource.PlayOneShot(explosionClip, explosionVolume);
+        explosion.Play();
 
         movement.enabled = false;
-
-        Invoke("ReloadLevel", loadDelay);
+        Invoke("ReloadLevel", deathDelay);
     }
 
     private void StartLoadNextLevelSequence()
     {
-        movement.enabled = false;
+        isTransitioning = true;
+        audioSource.Stop();
+        audioSource.PlayOneShot(sucessClip, sucessVolume);
+        sucess.Play();
 
+        movement.enabled = false;
         Invoke("LoadNextLevel", loadDelay);
     }
 
